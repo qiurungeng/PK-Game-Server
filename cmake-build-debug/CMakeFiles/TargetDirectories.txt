@@ -1,0 +1,3 @@
+/C_Project/MyGameServer/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/C_Project/MyGameServer/cmake-build-debug/CMakeFiles/MyGameServer.dir
+/C_Project/MyGameServer/cmake-build-debug/CMakeFiles/edit_cache.dir

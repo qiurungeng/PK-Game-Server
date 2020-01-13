@@ -1,0 +1,1 @@
+/usr/bin/gcc -g   CMakeFiles/MyGameServer.dir/main.c.o CMakeFiles/MyGameServer.dir/src/game_server.c.o CMakeFiles/MyGameServer.dir/src/attack.c.o CMakeFiles/MyGameServer.dir/src/socket_util.c.o CMakeFiles/MyGameServer.dir/src/vector_client.c.o  -o MyGameServer 
