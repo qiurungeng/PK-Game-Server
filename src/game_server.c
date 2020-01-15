@@ -24,6 +24,7 @@
 #define HERO_BE_HURT_MSG 6
 #define HERO_DIE_MSG 7
 #define HERO_WIN_MSG 8
+#define HERO_QUIT_MSG 9
 #define BLOOD_REDUCE 10
 
 //VectorFD *vfd;
@@ -40,7 +41,8 @@ void sig_handler(int signo){
         printf("server close!\n");
         //关闭socket
         close(sockfd_tcp);
-        for (int i = 0; i <vc->counter; ++i) {
+        int i;
+        for (i = 0; i <vc->counter; ++i) {
             close(get_client(vc,i)->fd_normal);
             close(get_client(vc,i)->fd_vital);
         }
@@ -143,6 +145,11 @@ Client* create_Client(struct sockaddr_in *client_addr,int tcp_fd){
     printf("CLIENT ID:%d\n",get_client(vc,vc->counter-1)->id);
     printf("CLIENT BLOOD:%d\n",get_client(vc,vc->counter-1)->blood_value);
     printf("now there are %d clients in game.\n",ALIVE_PLAYER_COUNT);
+    int i;
+    for(i=0;i<vc->counter;i++){
+        Client *alive=get_client(vc,i);
+        printf("alive client:%d,normal_port:%d,vital_port:%d\n",alive->id,alive->fd_normal,alive->fd_vital);
+    }
     printf("*********************************\n\n");
 
 }
@@ -260,7 +267,9 @@ void do_service_vital(Client* client){
         int i,j;
         char* pSave=NULL;
         char* pSave2=NULL;
-        switch (atoi(strtok_r(to_split,"|",&pSave))){
+        int msg=atoi(strtok_r(to_split,"|",&pSave));
+        printf("service msg type:%d\n",msg);
+        switch (msg){
             case HERO_ATTACK_MEG:
                 //解析Java传来的攻击消息数据
                 atk_id=atoi(strtok_r(NULL,"|",&pSave));
@@ -338,7 +347,6 @@ void do_service_vital(Client* client){
                                     if (c->isDead==1){
                                         c->isDead=2;                //标记为已死
                                         ALIVE_PLAYER_COUNT--;       //场上存活玩家数量更新
-
                                     }
                                 }
                                 //群发受伤通知
@@ -365,6 +373,26 @@ void do_service_vital(Client* client){
                 }
 
                 break;
+            case HERO_QUIT_MSG:
+                printf("Client:%d has quited!\n",client->id);
+
+                char buf[(sizeof(int)+ sizeof("|"))*2];
+                sprintf(buf,"%d|%d|",HERO_QUIT_MSG,client->id);
+                for (i = 0; i<vc->counter ; i++) {
+                    Client *to_notify=get_client(vc,i);
+                    if (to_notify->id==client->id)continue;
+                    printf("notify client:%d about this QUIT msg\n",to_notify->id);
+                    write(to_notify->fd_vital,buf, sizeof(buf));
+                }
+                ALIVE_PLAYER_COUNT--;
+                close(client->fd_vital);
+                close(client->fd_normal);
+                remove_client(vc,client);
+                printf("Now there are %d client in Game.\n",vc->counter);
+                for(i=0;i<vc->counter;i++){
+                    Client *alive=get_client(vc,i);
+                    printf("alive client:%d,normal_port:%d,vital_port:%d\n",alive->id,alive->fd_normal,alive->fd_vital);
+                }
             default:
                 break;
         }

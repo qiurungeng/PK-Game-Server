@@ -13,8 +13,8 @@ static int indexof(VectorClient *vc,Client *client){
         if(vc->clients[i].id==client->id){
             return i;
         }
-        return -1;
     }
+    return -1;
 }
 
 static void encapacity(VectorClient *vc){
